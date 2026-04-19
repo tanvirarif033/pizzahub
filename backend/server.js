@@ -15,6 +15,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const recommendRoutes = require('./routes/recommendRoutes');
 const userRoutes =require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const wishlistRoutes = require('./routes/wishlistRoutes');
 
 
 
@@ -36,6 +37,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/recommend', recommendRoutes);
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/admin', adminRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 // Port
 const PORT = process.env.PORT || 5000;
 

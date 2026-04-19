@@ -1,24 +1,20 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
 
 const {
-  getUsers,
-  updateUserRole,
   getProfile,
   updateProfile,
   uploadProfilePic
 } = require('../controllers/userController');
 
 const auth = require('../middleware/authMiddleware');
-const admin = require('../middleware/adminMiddleware');
-const upload = require('../middleware/upload');
+const upload = require('../middleware/upload'); // multer/cloudinary
 
-// 🔹 Profile routes (User + Admin both)
+// 🔹 PROFILE
 router.get('/me', auth, getProfile);
 router.put('/me', auth, updateProfile);
-router.put('/me/photo', auth, upload.single('image'), uploadProfilePic);
 
-// 🔹 Admin routes
-router.get('/', auth, admin, getUsers);
-router.put('/:id', auth, admin, updateUserRole);
+// 🔥 PHOTO UPLOAD
+router.put('/me/photo', auth, upload.single('image'), uploadProfilePic);
 
 module.exports = router;

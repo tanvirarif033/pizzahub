@@ -96,9 +96,11 @@ exports.getAllOrders = async (req, res) => {
         },
         {
           model: OrderItem,
+          as: 'OrderItems', // ✅ MUST MATCH MODEL
           include: [
             {
-              model: Pizza
+              model: Pizza,
+              as: 'Pizza' // ✅ MUST MATCH
             }
           ]
         }
@@ -113,7 +115,6 @@ exports.getAllOrders = async (req, res) => {
     res.status(500).json({ msg: 'Failed to fetch orders' });
   }
 };
-
 
 // =============================
 // 🔥 UPDATE ORDER STATUS (ADMIN)
