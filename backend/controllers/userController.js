@@ -1,6 +1,6 @@
 const { User } = require('../models');
 const bcrypt = require('bcryptjs');
-
+const cloudinary = require('../config/cloudinary');
 // 🔹 Get my profile
 exports.getProfile = async (req, res) => {
   const user = await User.findByPk(req.user.id, {
@@ -31,23 +31,42 @@ exports.updateProfile = async (req, res) => {
 };
 
 // 🔹 Upload profile picture
+
+
+
+// 📸 Upload profile picture
 exports.uploadProfilePic = async (req, res) => {
-  const imageUrl = req.file.path;
+  try {
+    console.log("USER ID:", req.user.id);
 
-  await User.update(
-    { profilePic: imageUrl },
-    { where: { id: req.user.id } }
-  );
+    if (!req.file) {
+      return res.status(400).json({ msg: 'No file uploaded' });
+    }
 
-  res.json({ msg: 'Profile picture updated', imageUrl });
+    // 🔥 যদি multer-cloudinary use করো
+    const imageUrl = req.file.path;
+
+    await User.update(
+      { profilePic: imageUrl },
+      { where: { id: req.user.id } }
+    );
+
+    // 🔥 UPDATED USER RETURN
+    const updatedUser = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
+
+    res.json({
+      msg: 'Profile picture updated',
+      imageUrl,
+      user: updatedUser
+    });
+
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
+    res.status(500).json({ msg: 'Upload failed' });
+  }
 };
-
-// 🔹 Admin: get all users
-exports.getUsers = async (req, res) => {
-  const users = await User.findAll();
-  res.json(users);
-};
-
 // 🔹 Admin: update role
 exports.updateUserRole = async (req, res) => {
   await User.update(
