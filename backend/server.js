@@ -13,11 +13,12 @@ const authRoutes = require('./routes/authRoutes');
 const pizzaRoutes = require('./routes/pizzaRoutes'); 
 const orderRoutes = require('./routes/orderRoutes');
 const recommendRoutes = require('./routes/recommendRoutes');
-const userRoutes =require('./routes/userRoutes');
+const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 
-
+// 🔥 FIX: use this properly
+const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
 
@@ -35,9 +36,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/pizzas', pizzaRoutes); 
 app.use('/api/orders', orderRoutes);
 app.use('/api/recommend', recommendRoutes);
-app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+
+// 🔥 PAYMENT ROUTE (ONLY ONCE)
+app.use('/api/payment', paymentRoutes);
+
 // Port
 const PORT = process.env.PORT || 5000;
 

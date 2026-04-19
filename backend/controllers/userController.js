@@ -1,57 +1,76 @@
+// controllers/userController.js
+
 const { User } = require('../models');
 const bcrypt = require('bcryptjs');
-const cloudinary = require('../config/cloudinary');
-// 🔹 Get my profile
+
+// ─────────────────────────────────────────
+// GET /users/me
+// ─────────────────────────────────────────
 exports.getProfile = async (req, res) => {
-  const user = await User.findByPk(req.user.id, {
-    attributes: { exclude: ['password'] }
-  });
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
 
-  res.json(user);
-};
+    if (!user) return res.status(404).json({ msg: 'User not found' });
 
-// 🔹 Update profile (email change allowed না)
-exports.updateProfile = async (req, res) => {
-  const { name, password } = req.body;
-
-  const updateData = {};
-
-  if (name) updateData.name = name;
-
-  if (password) {
-    const hash = await bcrypt.hash(password, 10);
-    updateData.password = hash;
+    res.json(user);
+  } catch (err) {
+    console.error('GET PROFILE ERROR:', err);
+    res.status(500).json({ msg: 'Server error' });
   }
-
-  await User.update(updateData, {
-    where: { id: req.user.id }
-  });
-
-  res.json({ msg: 'Profile updated' });
 };
 
-// 🔹 Upload profile picture
+// ─────────────────────────────────────────
+// PUT /users/me  (name / password update)
+// ─────────────────────────────────────────
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, password } = req.body;
+    const updateData = {};
 
+    if (name) updateData.name = name;
 
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
 
-// 📸 Upload profile picture
+    await User.update(updateData, { where: { id: req.user.id } });
+
+    // ✅ FIX 2: Return the full updated user (excluding password)
+    // so the frontend can sync localStorage immediately
+    const updatedUser = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
+
+    res.json({ msg: 'Profile updated', user: updatedUser });
+  } catch (err) {
+    console.error('UPDATE PROFILE ERROR:', err);
+    res.status(500).json({ msg: 'Update failed' });
+  }
+};
+
+// ─────────────────────────────────────────
+// PUT /users/me/photo  (profile picture)
+// ─────────────────────────────────────────
 exports.uploadProfilePic = async (req, res) => {
   try {
-    console.log("USER ID:", req.user.id);
-
     if (!req.file) {
       return res.status(400).json({ msg: 'No file uploaded' });
     }
 
-    // 🔥 যদি multer-cloudinary use করো
+    // multer-storage-cloudinary puts the URL in req.file.path
     const imageUrl = req.file.path;
 
+    // ✅ FIX 3: profilePic column now exists in the model,
+    // so this update actually persists to the database
     await User.update(
       { profilePic: imageUrl },
       { where: { id: req.user.id } }
     );
 
-    // 🔥 UPDATED USER RETURN
+    // ✅ FIX 4: Return the full updated user so frontend
+    // can store it in localStorage and state together
     const updatedUser = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password'] }
     });
@@ -59,20 +78,26 @@ exports.uploadProfilePic = async (req, res) => {
     res.json({
       msg: 'Profile picture updated',
       imageUrl,
-      user: updatedUser
+      user: updatedUser   // ← frontend uses this to update localStorage
     });
-
   } catch (err) {
-    console.error("UPLOAD ERROR:", err);
+    console.error('UPLOAD ERROR:', err);
     res.status(500).json({ msg: 'Upload failed' });
   }
 };
-// 🔹 Admin: update role
-exports.updateUserRole = async (req, res) => {
-  await User.update(
-    { role: req.body.role },
-    { where: { id: req.params.id } }
-  );
 
-  res.json({ msg: 'Role updated' });
+// ─────────────────────────────────────────
+// PUT /admin/users/:id  (role change)
+// ─────────────────────────────────────────
+exports.updateUserRole = async (req, res) => {
+  try {
+    await User.update(
+      { role: req.body.role },
+      { where: { id: req.params.id } }
+    );
+    res.json({ msg: 'Role updated' });
+  } catch (err) {
+    console.error('ROLE UPDATE ERROR:', err);
+    res.status(500).json({ msg: 'Failed to update role' });
+  }
 };
