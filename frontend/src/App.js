@@ -5,6 +5,7 @@ import Layout from "./layouts/Layout";
 // Auth
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import GoogleAuthSuccess from "./pages/GoogleAuthSuccess"; // ✅ NEW
 
 // Common
 import Home from "./pages/Home";
@@ -31,14 +32,17 @@ import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
+    
     <BrowserRouter>
       <Layout>
         <Routes>
           {/* 🔓 PUBLIC */}
           <Route path="/" element={<Home />} />
-
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* ✅ Google OAuth callback landing page */}
+          <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
 
           {/* 🔒 USER */}
           <Route
@@ -49,7 +53,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/cart"
             element={
@@ -58,7 +61,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/orders"
             element={
